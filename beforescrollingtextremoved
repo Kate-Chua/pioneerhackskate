@@ -1,0 +1,78 @@
+import pygame
+import random
+import os
+pygame.init()
+
+screen = pygame.display.set_mode((1200, 626))
+pygame.display.set_caption("Pioneer Hacks")
+clock = pygame.time.Clock()
+font = pygame.font.Font(None, 25)
+screen_shake = 500
+render_offset = [0,0]
+#Sprite List
+parrotCawOriginal = pygame.image.load("parrotCaw.png")
+parrotStillOriginal = pygame.image.load("parrotStill.png")
+parrotCawResized = pygame.transform.scale(parrotCawOriginal, (138, 94.5))
+parrotStillResized = pygame.transform.scale(parrotStillOriginal, (138, 94.5))
+parrotCaw = pygame.transform.flip(parrotCawResized, True, False)
+parrotStill = pygame.transform.flip(parrotStillResized, True, False)
+backgroundOriginalSize = pygame.image.load("background.png")
+background = pygame.transform.scale(backgroundOriginalSize, (1200, 626))
+
+# raise the USEREVENT every 1000ms
+pygame.time.set_timer(pygame.USEREVENT, 200)
+
+def text_generator(text):
+    tmp = ''
+    for letter in text:
+        tmp += letter
+        if letter != ' ':
+            yield tmp
+
+class DynamicText(object):
+    def __init__(self, font, text, pos, autoreset=False):
+        self.done = False
+        self.font = font
+        self.text = text
+        self._gen = text_generator(self.text)
+        self.pos = pos
+        self.autoreset = autoreset
+        self.update()
+
+    def reset(self):
+        self._gen = text_generator(self.text)
+        self.done = False
+        self.update()
+
+    def update(self):
+        if not self.done:
+            try:
+                self.rendered = self.font.render(next(self._gen), True, (0, 128, 0))
+            except StopIteration:
+                self.done = True
+                if self.autoreset: self.reset()
+
+    def draw(self, screen):
+        screen.blit(self.rendered, self.pos)
+
+message = DynamicText(font, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", (500, 200), autoreset=True)
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT: break
+        if event.type == pygame.USEREVENT: message.update()
+    else:
+        screen.blit(background, render_offset)
+        screen.blit(parrotStill, (930, 310))
+        message.draw(screen)
+        if screen_shake > 0:
+            screen_shake -= 1
+        if screen_shake:
+            render_offset[0] = random.randint(0, 8) - 4
+            render_offset[1] = random.randint(0, 8) - 4
+
+        pygame.display.flip()
+        clock.tick(60)
+        continue
+    break
+pygame.quit()
